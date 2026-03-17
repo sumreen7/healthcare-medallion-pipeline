@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Report — Healthcare Claims Medallion Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0f0a;
+    --surface: #13160f;
+    --surface2: #1a1e14;
+    --border: #2a2f22;
+    --accent: #8db87a;
+    --accent2: #c5e0b4;
+    --gold: #d4a843;
+    --silver: #9ab0c4;
+    --bronze: #c17f4a;
+    --text: #e8edd8;
+    --muted: #7a8570;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'Figtree', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(141,184,122,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(141,184,122,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 80px 32px 120px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 80px;
+    opacity: 0;
+    animation: fadeUp .8s ease forwards;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .meta-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 99px;
+    letter-spacing: .05em;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 64px;
+    opacity: 0;
+    animation: fadeUp .8s ease forwards;
+  }
+
+  .section:nth-child(2) { animation-delay: .1s; }
+  .section:nth-child(3) { animation-delay: .2s; }
+  .section:nth-child(4) { animation-delay: .3s; }
+  .section:nth-child(5) { animation-delay: .4s; }
+  .section:nth-child(6) { animation-delay: .5s; }
+  .section:nth-child(7) { animation-delay: .6s; }
+  .section:nth-child(8) { animation-delay: .7s; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 20px;
+    line-height: 1.3;
+  }
+
+  p {
+    font-size: 15.5px;
+    color: #b8c4a8;
+    margin-bottom: 16px;
+    line-height: 1.85;
+  }
+
+  strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Medallion layers */
+  .layers {
+    display: grid;
+    gap: 2px;
+    margin: 32px 0;
+  }
+
+  .layer {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+
+  .layer:hover { border-color: #3a4030; }
+
+  .layer-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    font-weight: 500;
+  }
+
+  .layer-badge .dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .layer.bronze .layer-badge { background: rgba(193,127,74,.08); color: var(--bronze); }
+  .layer.bronze .dot { background: rgba(193,127,74,.15); }
+  .layer.silver .layer-badge { background: rgba(154,176,196,.08); color: var(--silver); }
+  .layer.silver .dot { background: rgba(154,176,196,.15); }
+  .layer.gold .layer-badge { background: rgba(212,168,67,.08); color: var(--gold); }
+  .layer.gold .dot { background: rgba(212,168,67,.15); }
+
+  .layer-body {
+    padding: 20px 24px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+  }
+
+  .layer-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .layer-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* Insight card */
+  .insight {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin: 32px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .insight::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle at top right, rgba(141,184,122,.04), transparent 70%);
+    pointer-events: none;
+  }
+
+  .insight-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .insight-numbers {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .insight-stat { text-align: center; }
+
+  .insight-val {
+    font-family: var(--serif);
+    font-size: 2.4rem;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .insight-val.highlight { color: var(--accent); }
+
+  .insight-lbl {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .insight-note {
+    font-size: 13.5px;
+    color: var(--muted);
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* Tech stack */
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 24px 0;
+  }
+
+  .stack-item {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent2);
+    background: rgba(141,184,122,.06);
+    border: 1px solid rgba(141,184,122,.15);
+    padding: 7px 16px;
+    border-radius: 6px;
+    letter-spacing: .03em;
+  }
+
+  /* Learning list */
+  .learnings {
+    display: grid;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .learning-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color .2s, background .2s;
+  }
+
+  .learning-item:hover {
+    border-color: #3a4030;
+    background: var(--surface2);
+  }
+
+  .learning-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    min-width: 24px;
+    padding-top: 3px;
+    letter-spacing: .05em;
+  }
+
+  .learning-text {
+    font-size: 14px;
+    color: #b8c4a8;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* Pipeline diagram */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 32px 0;
+    overflow-x: auto;
+    padding: 4px 0;
+  }
+
+  .pipe-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 110px;
+  }
+
+  .pipe-box {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .08em;
+    transition: transform .2s;
+    cursor: default;
+  }
+
+  .pipe-box:hover { transform: translateY(-3px); }
+  .pipe-box .icon { font-size: 22px; }
+
+  .pipe-box.raw { background: rgba(122,133,112,.08); color: var(--muted); }
+  .pipe-box.bronze-b { background: rgba(193,127,74,.08); color: var(--bronze); border-color: rgba(193,127,74,.2); }
+  .pipe-box.silver-b { background: rgba(154,176,196,.08); color: var(--silver); border-color: rgba(154,176,196,.2); }
+  .pipe-box.gold-b { background: rgba(212,168,67,.08); color: var(--gold); border-color: rgba(212,168,67,.2); }
+  .pipe-box.dash { background: rgba(141,184,122,.08); color: var(--accent); border-color: rgba(141,184,122,.2); }
+
+  .pipe-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-align: center;
+  }
+
+  .pipe-arrow {
+    color: var(--border);
+    font-size: 18px;
+    flex-shrink: 0;
+    padding-bottom: 20px;
+  }
+
+  /* Links */
+  .links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .05em;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .link-btn:hover {
+    background: var(--surface2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .link-btn.primary {
+    background: rgba(141,184,122,.1);
+    border-color: rgba(141,184,122,.3);
+    color: var(--accent2);
+  }
+
+  .link-btn.primary:hover {
+    background: rgba(141,184,122,.18);
+    border-color: var(--accent);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 48px 20px 80px; }
+    .insight-numbers { grid-template-columns: 1fr; gap: 16px; }
+    .layer { grid-template-columns: 80px 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="eyebrow">Project Report</div>
+    <h1>Healthcare Claims<br><em>Medallion Pipeline</em></h1>
+    <div class="header-meta">
+      <span class="meta-chip">Python · DuckDB · dbt</span>
+      <span class="meta-chip">1,338 claims</span>
+      <span class="meta-chip">Bronze / Silver / Gold</span>
+      <span class="meta-chip">Tableau Public</span>
+    </div>
+  </div>
+
+  <!-- What is it -->
+  <div class="section">
+    <div class="section-label">01 — Overview</div>
+    <h2>What is this project?</h2>
+    <p>A <strong>Medallion Architecture ETL Pipeline</strong> — a system that takes raw data, moves it through three structured layers of increasing quality, and produces clean, analytics-ready tables that a business can query and visualize.</p>
+    <p>The name "medallion" comes from the Bronze/Silver/Gold layer structure. Each layer represents a higher level of data quality and business readiness. This architecture is used in production by companies like Databricks, Netflix, and Airbnb.</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-box raw"><span class="icon">📄</span>RAW CSV</div>
+        <div class="pipe-label">source</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box bronze-b"><span class="icon">🥉</span>BRONZE</div>
+        <div class="pipe-label">as-is ingest</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box silver-b"><span class="icon">🥈</span>SILVER</div>
+        <div class="pipe-label">dbt cleaning</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box gold-b"><span class="icon">🥇</span>GOLD</div>
+        <div class="pipe-label">dimensional model</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box dash"><span class="icon">📊</span>TABLEAU</div>
+        <div class="pipe-label">dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- What problem -->
+  <div class="section">
+    <div class="section-label">02 — Problem</div>
+    <h2>What problem does it solve?</h2>
+    <p>Raw healthcare claims data is messy and hard to analyze — inconsistent formats, no categorization, and no structure for reporting. Without a pipeline, every analyst who wants to answer a business question has to clean the data themselves, from scratch, every time.</p>
+    <p>This pipeline solves that by building a single source of truth that any analyst can query directly — without touching a single CSV.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- What I did -->
+  <div class="section">
+    <div class="section-label">03 — Architecture</div>
+    <h2>What was built?</h2>
+
+    <div class="layers">
+      <div class="layer bronze">
+        <div class="layer-badge">
+          <div class="dot">🥉</div>
+          BRONZE
+        </div>
+        <div class="layer-body">
+          <div class="layer-title">Raw Ingestion</div>
+          <p class="layer-desc">Loaded 1,338 raw healthcare claims from CSV into DuckDB using Python — exactly as-is, with zero transformations. Preserves the source truth permanently so nothing is ever lost or overwritten.</p>
+        </div>
+      </div>
+
+      <div class="layer silver">
+        <div class="layer-badge">
+          <div class="dot">🥈</div>
+          SILVER
+        </div>
+        <div class="layer-body">
+          <div class="layer-title">Cleaning & Standardization</div>
+          <p class="layer-desc">dbt models that apply business rules to the Bronze data: bucketing ages into life stages, classifying BMI into clinical categories, normalizing smoker flags to booleans, and flagging high-value claims over $30,000. 6 data quality tests pass.</p>
+        </div>
+      </div>
+
+      <div class="layer gold">
+        <div class="layer-badge">
+          <div class="dot">🥇</div>
+          GOLD
+        </div>
+        <div class="layer-body">
+          <div class="layer-title">Dimensional Model</div>
+          <p class="layer-desc">Kimball-style fact and dimension tables. <strong>dim_patient</strong> holds who the patient is. <strong>fact_claims</strong> holds what happened — the actual claim amounts and measures. This is what analysts query.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Key insight -->
+  <div class="section">
+    <div class="section-label">04 — Key Finding</div>
+    <h2>What did the data reveal?</h2>
+
+    <div class="insight">
+      <div class="insight-label">Business insight from Gold layer</div>
+      <div class="insight-numbers">
+        <div class="insight-stat">
+          <div class="insight-val highlight">$32,108</div>
+          <div class="insight-lbl">Smoker avg. claim</div>
+        </div>
+        <div class="insight-stat">
+          <div class="insight-val">$8,415</div>
+          <div class="insight-lbl">Non-smoker avg. claim</div>
+        </div>
+        <div class="insight-stat">
+          <div class="insight-val highlight">3.8×</div>
+          <div class="insight-lbl">Cost difference</div>
+        </div>
+      </div>
+      <p class="insight-note">Smokers cost 3.8× more in healthcare claims than non-smokers — derived from 1,338 real insurance records processed through the full pipeline.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- How -->
+  <div class="section">
+    <div class="section-label">05 — Tech Stack</div>
+    <h2>How was it built?</h2>
+    <p>Built entirely with free, open-source tools used in production data engineering roles.</p>
+    <div class="stack">
+      <span class="stack-item">Python 3.13</span>
+      <span class="stack-item">DuckDB</span>
+      <span class="stack-item">dbt-core 1.11</span>
+      <span class="stack-item">dbt-duckdb</span>
+      <span class="stack-item">pandas</span>
+      <span class="stack-item">Tableau Public</span>
+      <span class="stack-item">Git + GitHub</span>
+    </div>
+    <p>Python handles raw ingestion. DuckDB acts as the local analytical database — fast, free, and runs entirely on your laptop. dbt manages all SQL transformations with version control, tests, and documentation built in. Tableau Public visualizes the Gold layer output.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- What I learned -->
+  <div class="section">
+    <div class="section-label">06 — Learnings</div>
+    <h2>What was learned?</h2>
+    <div class="learnings">
+      <div class="learning-item">
+        <span class="learning-num">01</span>
+        <p class="learning-text"><strong>Schema on read vs schema on write</strong> — why the Bronze layer lands raw data without transformation, and why preserving source truth is a first principle of data engineering.</p>
+      </div>
+      <div class="learning-item">
+        <span class="learning-num">02</span>
+        <p class="learning-text"><strong>dbt fundamentals</strong> — writing modular SQL models with <code>ref()</code>, running automated data quality tests, and documenting transformations inline.</p>
+      </div>
+      <div class="learning-item">
+        <span class="learning-num">03</span>
+        <p class="learning-text"><strong>Kimball dimensional modeling</strong> — separating <em>who</em> (dimension tables) from <em>what happened</em> (fact tables), and why this structure makes analytics faster and more reliable.</p>
+      </div>
+      <div class="learning-item">
+        <span class="learning-num">04</span>
+        <p class="learning-text"><strong>Data pipeline structure</strong> — how to organize a real project with clean folder structure, version control from day one, and a README that tells the story clearly.</p>
+      </div>
+      <div class="learning-item">
+        <span class="learning-num">05</span>
+        <p class="learning-text"><strong>End-to-end delivery</strong> — going from a raw CSV to a live, published dashboard entirely with free tools, and understanding every step of the data journey in between.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Links -->
+  <div class="section">
+    <div class="section-label">07 — Links</div>
+    <h2>Project resources</h2>
+    <div class="links">
+      <a class="link-btn primary" href="https://github.com/sumreen7/healthcare-medallion-pipeline" target="_blank">
+        ↗ GitHub Repository
+      </a>
+      <a class="link-btn" href="https://public.tableau.com/app/profile/fathima.sumreen/viz/HealthcareClaims-MedallionPipelineDashboard/Dashboard1" target="_blank">
+        ↗ Live Tableau Dashboard
+      </a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
