@@ -17,10 +17,12 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ['underweight', 'normal', 'overweight', 'obese']
+              arguments:
+                values: ['underweight', 'normal', 'overweight', 'obese']
       - name: age_group
         description: "Age bucket"
         data_tests:
           - not_null
           - accepted_values:
-              values: ['minor', 'young_adult', 'middle_aged', 'senior']
+              arguments:
+                values: ['minor', 'young_adult', 'middle_aged', 'senior']
