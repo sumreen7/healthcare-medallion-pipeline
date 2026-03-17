@@ -52,3 +52,14 @@ dbt run
 # 4. Run data quality tests
 dbt test
 ```
+
+## Dashboard
+
+Built on top of the Gold layer using Tableau Public.
+
+[View live dashboard](https://public.tableau.com/app/profile/fathima.sumreen/viz/HealthcareClaims-MedallionPipelineDashboard/Dashboard1)
+
+Key findings:
+- Smokers average **$32,108** in claims vs **$8,415** for non-smokers (3.8x higher)
+- Senior age group carries the highest average claim cost
+- Southeast region has the highest claim volume
