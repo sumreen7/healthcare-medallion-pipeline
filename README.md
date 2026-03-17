@@ -63,3 +63,9 @@ Key findings:
 - Smokers average **$32,108** in claims vs **$8,415** for non-smokers (3.8x higher)
 - Senior age group carries the highest average claim cost
 - Southeast region has the highest claim volume
+
+## Project Report
+
+A full write-up of what this project is, what problem it solves, how it was built, and what was learned.
+
+👉 [View Project Report](https://sumreen7.github.io/healthcare-medallion-pipeline/)
